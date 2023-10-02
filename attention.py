@@ -69,6 +69,34 @@ class CrossAttention(nn.Module):
         input_shape = x.shape
         batch_size, sequence_length, d_embed = input_shape
         
+        interim_shape = (batch_size, -1, self.n_heads, self.d_head)
+        
+        q = self.q_proj(x)
+        
+        k = self.k_proj(x)
+        
+        v = self.v_proj(x)
+        
+        q = q.view(interim_shape).transpose(1,2)
+        k = k.view(interim_shape).transpose(1,2)
+        v = v.view(interim_shape).transpose(1,2)
+        
+        weight = q @ k.transpose(-1,-2)
+        
+        weight /= math.sqrt(self.d_head)
+        
+        weight = F.softmax(weight, dim = -1)
+        
+        output = weight @ v
+        
+        output = output.transpose(1,2).contiguous()
+        output = output.view(input_shape)
+        
+        return output
+    
+        
+        
+        
                  
         
         
